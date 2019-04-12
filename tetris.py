@@ -12,8 +12,8 @@ import random
 import sqlite3
 import threading
 import time
-
 import pygame
+
 
 class Game:
     "Game state for Tetris."
@@ -23,7 +23,8 @@ class Game:
         self.windowWidth = width * 30
         self.height = height
         self.windowHeight = height * 37
-        self.fontSize = 24
+        self.window = pygame.display.set_mode((self.windowWidth, self.windowHeight), 0, 32)
+        self.font = pygame.font.Font('freesansbold.ttf', 24)
         self.board = collections.defaultdict(lambda: '#')
         for x in range(width):
             for y in range(height):
@@ -63,56 +64,68 @@ class Game:
         input_loop(self)
 
         #canvas declaration
-        window = pygame.display.set_mode((self.windowWidth, self.windowHeight), 0, 32)
-        window.fill(self.bgColor)
-
-        # Fonts and Drawing Text
-        font = pygame.font.Font('freesansbold.ttf', self.fontSize)
+        #window = pygame.display.set_mode((self.windowWidth, self.windowHeight), 0, 32)
+        self.window.fill(self.bgColor)
 
         # Score
-        text1 = font.render('Score: ' + str(self.score), True, self.blue, self.bgColor)
+        text1 = self.font.render('Score: ' + str(self.score), True, self.blue, self.bgColor)
         textRect1 = text1.get_rect()     
         textRect1.center = (55, 15)
 
         # Level
-        text2 = font.render('Level: ' + str(self.score // 4 + 1), True, self.blue, self.bgColor)
+        text2 = self.font.render('Level: ' + str(self.score // 4 + 1), True, self.blue, self.bgColor)
         textRect2 = text2.get_rect()     
         textRect2.center = (53, 43)
 
         # Next Piece
-        text3 = font.render('Next piece: ' + self.next_letter, True, self.blue, self.bgColor)
+        text3 = self.font.render('Next piece: ' + self.next_letter, True, self.blue, self.bgColor)
         textRect3 = text3.get_rect()     
         textRect3.center = (84, 73)
 
         # Stash Piece
-        text4 = font.render('Stash piece: ' + 'no' if self.stash is None else 'yes', True, self.blue, self.bgColor)
+        text4 = self.font.render('Stash piece: ' + 'no' if self.stash is None else 'yes', True, self.blue, self.bgColor)
         textRect4 = text4.get_rect()     
         textRect4.center = (97, 103)
 
         # Starting Line
-        pygame.draw.line(window, self.blue, (0, 125), (self.width*50, 125), 5)
+        pygame.draw.line(self.window, self.blue, (0, 125), (self.width*50, 125), 5)
         # Ending Line
-        pygame.draw.line(window, self.blue, (0, self.height*37), (self.width*50, self.height*37), 25)
+        pygame.draw.line(self.window, self.blue, (0, self.height*37), (self.width*50, self.height*37), 25)
 
         # Draw the board, incorporating each piece
         for x in range(self.width):
             for y in range(self.height):
                 if ((x, y) in self.piece):
                     # Draw squares and outlines
-                    pygame.draw.rect(window, self.red, ((30*x), 127+(30*y), 30, 30))
-                    pygame.draw.rect(window, self.black, ((30*x), 127+(30*y), 30, 30), 1)
+                    pygame.draw.rect(self.window, self.red, ((30*x), 127+(30*y), 30, 30))
+                    pygame.draw.rect(self.window, self.black, ((30*x), 127+(30*y), 30, 30), 1)
                 elif (self.board[x, y] == '#'):
-                    pygame.draw.rect(window, self.red, ((30*x), 127+(30*y), 30, 30))
-                    pygame.draw.rect(window, self.black, ((30*x), 127+(30*y), 30, 30), 1)
-
-
+                    pygame.draw.rect(self.window, self.red, ((30*x), 127+(30*y), 30, 30))
+                    pygame.draw.rect(self.window, self.black, ((30*x), 127+(30*y), 30, 30), 1)
 
         # Drawing/Updating of Window
-        window.blit(text1, textRect1)
-        window.blit(text2, textRect2)
-        window.blit(text3, textRect3)
-        window.blit(text4, textRect4)
+        self.window.blit(text1, textRect1)
+        self.window.blit(text2, textRect2)
+        self.window.blit(text3, textRect3)
+        self.window.blit(text4, textRect4)
+        
         pygame.display.update()
+
+    def draw_text_box(self):
+        "Draws text box for user to enter name"
+        input_box = InputBox(125, 125, 140, 32)
+
+        collectingInput = True
+         
+        while collectingInput:
+            for event in pygame.event.get():
+                input_box.handle_event(event)
+                input_box.update()
+                input_box.draw(self.window)
+                pygame.display.update()
+                
+        print('escaped!')
+
 
     def next_piece(self):
         "Create a new piece, on collision set active to False."
@@ -234,11 +247,59 @@ class Game:
             self.draw_window()
 
 
+class InputBox:
+
+    def __init__(self, x, y, w, h, text=''):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.COLOR_INACTIVE = pygame.Color('lightskyblue3')
+        self.COLOR_ACTIVE = pygame.Color('dodgerblue2')
+        self.FONT = pygame.font.Font(None, 32)
+        self.color = self.COLOR_INACTIVE
+        self.text = text
+        self.txt_surface = self.FONT.render(text, True, self.color)
+        self.active = False
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # If the user clicked on the input_box rect.
+            if self.rect.collidepoint(event.pos):
+                # Toggle the active variable.
+                self.active = not self.active
+            else:
+                self.active = False
+            # Change the current color of the input box.
+            self.color = self.COLOR_ACTIVE if self.active else self.COLOR_INACTIVE
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    print(self.text)
+                    return self.text
+                    self.text = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                # Re-render the text.
+                self.txt_surface = self.FONT.render(self.text, True, self.color)
+
+    def update(self):
+        # Resize the box if the text is too long.
+        width = max(200, self.txt_surface.get_width()+10)
+        self.rect.w = width
+
+    def draw(self, screen):
+        # Blit the text.
+        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        # Blit the rect.
+        pygame.draw.rect(screen, self.color, self.rect, 2)
+
+
 def draw_loop(game):
     """Draw loop.
 
     """
-    game.draw()
+    #game.draw() # Uncomment to have CLI
+
     game.draw_window() 
     counter = itertools.count(start=1)
     while game.active:
@@ -271,8 +332,10 @@ def input_loop(game):
 
     if game.active == False:
         print('Enter your name for leaderboard (blank to ignore):')
+        game.draw_text_box()
         name = input()
         if name:
+            print('got \'em')
             con = sqlite3.connect('tetris.sqlite3', isolation_level=None)
             con.execute('CREATE TABLE IF NOT EXISTS Leaderboard (name, score)')
             con.execute('INSERT INTO Leaderboard VALUES (?, ?)', (name, game.score))
