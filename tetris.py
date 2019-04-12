@@ -59,6 +59,7 @@ class Game:
 
     def draw_window(self):
         "Draws Pygame Window"
+        input_loop(self)
 
         #canvas declaration
         window = pygame.display.set_mode((self.windowWidth, self.windowHeight), 0, 32)
@@ -237,7 +238,7 @@ def draw_loop(game):
 
     """
     game.draw()
-    game.draw_window() #FIXME draws pygame window
+    game.draw_window() 
     counter = itertools.count(start=1)
     while game.active:
         mark = next(counter)
@@ -248,53 +249,71 @@ def input_loop(game):
     """Input loop.
 
     """
-    while game.active:
-        #FIXME
-        events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event == None:
-                    continue
-                elif event == pygame.K_LEFT:
-                    print('yeet')
-                    game.move('left')
-                elif event == pygame.K_RIGHT:
-                    game.move('right')
-                elif event == pygame.K_DOWN:
-                    game.move('down')
-                elif event == pygame.K_UP:
-                    game.move('up')
-                elif event == pygame.K_SPACE:
-                    game.move('space')
-                #elif key == 'quit':
-                    #game.active = False
-                #else:
-                    #assert key in ('left', 'down', 'right', 'up', 'space', 'swap')
-                    #FIXME I added left as a test
-                    #keys = None 
-                    #game.move(keys)
+    #FIXME
+    events = pygame.event.get()
+    for event in events:
+        if event.type == pygame.KEYDOWN:
+            if no_key_pressed(events):
+                continue
+            elif event.key == pygame.K_LEFT:
+                game.move('left')
+            elif event.key == pygame.K_RIGHT:
+                game.move('right')
+            elif event.key == pygame.K_DOWN:
+                game.move('down')
+            elif eventkey == pygame.K_UP:
+                game.move('up')
+            elif event.key == pygame.K_SPACE:
+                game.move('space')
+            #elif key == 'quit':
+                #game.active = False
+            #else:
+                #assert key in ('left', 'down', 'right', 'up', 'space', 'swap')
+                #FIXME I added left as a test
+                #keys = None 
+                #game.move(keys)
 
-    print('Enter your name for leaderboard (blank to ignore):')
-    name = input()
-    if name:
-        con = sqlite3.connect('tetris.sqlite3', isolation_level=None)
-        con.execute('CREATE TABLE IF NOT EXISTS Leaderboard (name, score)')
-        con.execute('INSERT INTO Leaderboard VALUES (?, ?)', (name, game.score))
-        scores = con.execute('SELECT * FROM Leaderboard ORDER BY score DESC LIMIT 10')
-        print('{0:<16} | {1:<16}'.format('Name', 'Score'))
-        for pair in scores:
-            print('{0:<16} | {1:<16}'.format(*pair))
+    if game.active == False:
+        print('Enter your name for leaderboard (blank to ignore):')
+        name = input()
+        if name:
+            con = sqlite3.connect('tetris.sqlite3', isolation_level=None)
+            con.execute('CREATE TABLE IF NOT EXISTS Leaderboard (name, score)')
+            con.execute('INSERT INTO Leaderboard VALUES (?, ?)', (name, game.score))
+            scores = con.execute('SELECT * FROM Leaderboard ORDER BY score DESC LIMIT 10')
+            print('{0:<16} | {1:<16}'.format('Name', 'Score'))
+            for pair in scores:
+                print('{0:<16} | {1:<16}'.format(*pair))
 
+
+def no_key_pressed(events):
+    """Quickly determine if a move key was pressed
+
+    """
+    for event in events:
+      if event.key == pygame.K_LEFT:
+        return False     
+      elif event.key == pygame.K_RIGHT:
+        return False
+      elif event.key == pygame.K_DOWN:
+        return False
+      elif eventkey == pygame.K_UP:
+        return False
+      elif event.key == pygame.K_SPACE:
+        return False
+      else:
+        return True
+    
 
 def main():
     "Main entry-point for Tetris."
-
     pygame.init()
 
     # Define board size
     game = Game(10, 20)
+
     draw_loop(game)
-    input_loop(game)
+    #input_loop(game)
 
 if __name__ == '__main__':
     main()
