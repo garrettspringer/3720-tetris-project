@@ -266,8 +266,8 @@ def input_loop(game):
                 game.move('up')
             elif event.key == pygame.K_SPACE:
                 game.move('space')
-            #elif key == 'quit':
-                #game.active = False
+            elif event.key == pygame.K_q:
+                game.active = False
             #else:
                 #assert key in ('left', 'down', 'right', 'up', 'space', 'swap')
                 #FIXME I added left as a test
