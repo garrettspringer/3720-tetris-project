@@ -59,6 +59,7 @@ class Game:
 
     def draw_window(self):
         "Draws Pygame Window"
+        # Check if player moved piece 
         input_loop(self)
 
         #canvas declaration
@@ -243,7 +244,7 @@ def draw_loop(game):
     while game.active:
         mark = next(counter)
         game.tick(mark)
-        time.sleep(0.1)
+        time.sleep(0.01)
 
 def input_loop(game):
     """Input loop.
