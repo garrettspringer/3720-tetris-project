@@ -33,6 +33,7 @@ class Game:
         self.speed = 20
         self.next_letter = self.random.choice('IJLOSTZ')
         self.piece = self.next_piece()
+        self.pieceColor = self.next_color()
         self.score = 0
         self.stash = None
         self.white = (255, 255, 255)
@@ -64,7 +65,6 @@ class Game:
         input_loop(self)
 
         #canvas declaration
-        #window = pygame.display.set_mode((self.windowWidth, self.windowHeight), 0, 32)
         self.window.fill(self.bgColor)
 
         # Score
@@ -97,10 +97,10 @@ class Game:
             for y in range(self.height):
                 if ((x, y) in self.piece):
                     # Draw squares and outlines
-                    pygame.draw.rect(self.window, self.red, ((30*x), 127+(30*y), 30, 30))
+                    pygame.draw.rect(self.window, self.pieceColor, ((30*x), 127+(30*y), 30, 30))
                     pygame.draw.rect(self.window, self.black, ((30*x), 127+(30*y), 30, 30), 1)
                 elif (self.board[x, y] == '#'):
-                    pygame.draw.rect(self.window, self.red, ((30*x), 127+(30*y), 30, 30))
+                    pygame.draw.rect(self.window, self.pieceColor, ((30*x), 127+(30*y), 30, 30))
                     pygame.draw.rect(self.window, self.black, ((30*x), 127+(30*y), 30, 30), 1)
 
         # Drawing/Updating of Window
@@ -113,10 +113,11 @@ class Game:
 
     def draw_text_box(self):
         "Draws text box for user to enter name"
-        input_box = InputBox(125, 125, 140, 32)
+        input_box = InputBox(100, 130, 140, 32)
 
         collectingInput = True
          
+        # Infinite Loop...need to fix after successfully save leader score
         while collectingInput:
             for event in pygame.event.get():
                 input_box.handle_event(event)
@@ -124,8 +125,6 @@ class Game:
                 input_box.draw(self.window)
                 pygame.display.update()
                 
-        print('escaped!')
-
 
     def next_piece(self):
         "Create a new piece, on collision set active to False."
@@ -152,6 +151,26 @@ class Game:
             self.end()
         return piece
 
+    def next_color(self):
+        "Select a random color for next game piece"
+        letter = self.next_letter
+        self.next_letter = self.random.choice('IJLOSTZ')
+        if letter == 'I':
+            color = (255, 0, 0)
+        elif letter == 'J':
+            color = (0, 255, 0)
+        elif letter == 'L':
+            color = (0, 0, 255)
+        elif letter == 'O':
+            color = (255, 255, 0)
+        elif letter == 'S':
+            color = (255, 0, 255)
+        elif letter == 'T':
+            color = (0, 255, 255)
+
+        return color
+
+
     def end(self):
         self.active = False
         print('Game over! Press any key to quit.', end='\r\n')
@@ -165,6 +184,7 @@ class Game:
                     self.board[x, y] = '#'
                 self.collapse()
                 self.piece = self.next_piece()
+                self.pieceColor = self.next_color()
             self.draw()
             self.draw_window()
 
