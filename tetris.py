@@ -35,8 +35,8 @@ class Game:
         self.score = 0
         self.stash = None
         self.white = (255, 255, 255)
-        self.blue = (0, 0, 128)
-        self.red = (128, 0, 0)
+        self.blue = (0, 0, 255)
+        self.red = (255, 0, 0)
         self.black = (0, 0, 0)
 
     def draw(self):
@@ -88,6 +88,8 @@ class Game:
 
         # Starting Line
         pygame.draw.line(window, self.blue, (0, 125), (self.width*50, 125), 5)
+        # Ending Line
+        pygame.draw.line(window, self.blue, (0, self.height*37), (self.width*50, self.height*37), 25)
 
         # Draw the board, incorporating each piece
         for x in range(self.width):
