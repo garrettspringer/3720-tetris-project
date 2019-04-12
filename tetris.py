@@ -20,7 +20,7 @@ class Game:
     def __init__(self, width, height, seed=None):
         self.random = random.Random(seed)
         self.width = width
-        self.windowWidth = width * 50
+        self.windowWidth = width * 30
         self.height = height
         self.windowHeight = height * 37
         self.fontSize = 24
@@ -250,7 +250,7 @@ def input_loop(game):
     """Input loop.
 
     """
-    #FIXME
+    # Collect user input
     events = pygame.event.get()
     for event in events:
         if event.type == pygame.KEYDOWN:
@@ -262,17 +262,12 @@ def input_loop(game):
                 game.move('right')
             elif event.key == pygame.K_DOWN:
                 game.move('down')
-            elif eventkey == pygame.K_UP:
+            elif event.key == pygame.K_UP:
                 game.move('up')
             elif event.key == pygame.K_SPACE:
                 game.move('space')
             elif event.key == pygame.K_q:
                 game.active = False
-            #else:
-                #assert key in ('left', 'down', 'right', 'up', 'space', 'swap')
-                #FIXME I added left as a test
-                #keys = None 
-                #game.move(keys)
 
     if game.active == False:
         print('Enter your name for leaderboard (blank to ignore):')
@@ -298,9 +293,11 @@ def no_key_pressed(events):
         return False
       elif event.key == pygame.K_DOWN:
         return False
-      elif eventkey == pygame.K_UP:
+      elif event.key == pygame.K_UP:
         return False
       elif event.key == pygame.K_SPACE:
+        return False
+      elif event.key == pygame.K_q:
         return False
       else:
         return True
@@ -314,7 +311,6 @@ def main():
     game = Game(10, 20)
 
     draw_loop(game)
-    #input_loop(game)
 
 if __name__ == '__main__':
     main()
