@@ -38,6 +38,7 @@ class Game:
         self.blue = (0, 0, 255)
         self.red = (255, 0, 0)
         self.black = (0, 0, 0)
+        self.bgColor = self.black
 
     def draw(self):
         "Draws the Window"
@@ -61,28 +62,28 @@ class Game:
 
         #canvas declaration
         window = pygame.display.set_mode((self.windowWidth, self.windowHeight), 0, 32)
-        window.fill(self.black)
+        window.fill(self.bgColor)
 
         # Fonts and Drawing Text
         font = pygame.font.Font('freesansbold.ttf', self.fontSize)
 
         # Score
-        text1 = font.render('Score: ' + str(self.score), True, self.blue, self.white)
+        text1 = font.render('Score: ' + str(self.score), True, self.blue, self.bgColor)
         textRect1 = text1.get_rect()     
         textRect1.center = (55, 15)
 
         # Level
-        text2 = font.render('Level: ' + str(self.score // 4 + 1), True, self.blue, self.white)
+        text2 = font.render('Level: ' + str(self.score // 4 + 1), True, self.blue, self.bgColor)
         textRect2 = text2.get_rect()     
         textRect2.center = (53, 43)
 
         # Next Piece
-        text3 = font.render('Next piece: ' + self.next_letter, True, self.blue, self.white)
+        text3 = font.render('Next piece: ' + self.next_letter, True, self.blue, self.bgColor)
         textRect3 = text3.get_rect()     
         textRect3.center = (84, 73)
 
         # Stash Piece
-        text4 = font.render('Stash piece: ' + 'no' if self.stash is None else 'yes', True, self.blue, self.white)
+        text4 = font.render('Stash piece: ' + 'no' if self.stash is None else 'yes', True, self.blue, self.bgColor)
         textRect4 = text4.get_rect()     
         textRect4.center = (97, 103)
 
