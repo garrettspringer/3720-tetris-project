@@ -20,7 +20,10 @@ class Game:
     def __init__(self, width, height, seed=None):
         self.random = random.Random(seed)
         self.width = width
+        self.windowWidth = width * 50
         self.height = height
+        self.windowHeight = height * 37
+        self.fontSize = 24
         self.board = collections.defaultdict(lambda: '#')
         for x in range(width):
             for y in range(height):
@@ -31,10 +34,13 @@ class Game:
         self.piece = self.next_piece()
         self.score = 0
         self.stash = None
-        pygame.init()
+        self.white = (255, 255, 255)
+        self.blue = (0, 0, 128)
+        self.red = (128, 0, 0)
+        self.black = (0, 0, 0)
 
     def draw(self):
-        "Draw game state."
+        "Draws the Window"
         print('Score:', self.score, end='\r\n')
         print('Level:', self.score // 4 + 1, end='\r\n')
         print('Next piece:', self.next_letter, end='\r\n')
@@ -49,6 +55,59 @@ class Game:
                     print(self.board[x, y], end='')
             print('|', end='\r\n')
         print('*' * (self.width + 2), end='\r\n')
+
+    def draw_window(self):
+        "Draws Pygame Window"
+
+        #canvas declaration
+        window = pygame.display.set_mode((self.windowWidth, self.windowHeight), 0, 32)
+        window.fill(self.black)
+
+        # Fonts and Drawing Text
+        font = pygame.font.Font('freesansbold.ttf', self.fontSize)
+
+        # Score
+        text1 = font.render('Score: ' + str(self.score), True, self.blue, self.white)
+        textRect1 = text1.get_rect()     
+        textRect1.center = (55, 15)
+
+        # Level
+        text2 = font.render('Level: ' + str(self.score // 4 + 1), True, self.blue, self.white)
+        textRect2 = text2.get_rect()     
+        textRect2.center = (53, 43)
+
+        # Next Piece
+        text3 = font.render('Next piece: ' + self.next_letter, True, self.blue, self.white)
+        textRect3 = text3.get_rect()     
+        textRect3.center = (84, 73)
+
+        # Stash Piece
+        text4 = font.render('Stash piece: ' + 'no' if self.stash is None else 'yes', True, self.blue, self.white)
+        textRect4 = text4.get_rect()     
+        textRect4.center = (97, 103)
+
+        # Starting Line
+        pygame.draw.line(window, self.blue, (0, 125), (self.width*50, 125), 5)
+
+        # Draw the board, incorporating each piece
+        for x in range(self.width):
+            for y in range(self.height):
+                if ((x, y) in self.piece):
+                    # Draw squares and outlines
+                    pygame.draw.rect(window, self.red, ((30*x), 127+(30*y), 30, 30))
+                    pygame.draw.rect(window, self.black, ((30*x), 127+(30*y), 30, 30), 1)
+                elif (self.board[x, y] == '#'):
+                    pygame.draw.rect(window, self.red, ((30*x), 127+(30*y), 30, 30))
+                    pygame.draw.rect(window, self.black, ((30*x), 127+(30*y), 30, 30), 1)
+
+
+
+        # Drawing/Updating of Window
+        window.blit(text1, textRect1)
+        window.blit(text2, textRect2)
+        window.blit(text3, textRect3)
+        window.blit(text4, textRect4)
+        pygame.display.update()
 
     def next_piece(self):
         "Create a new piece, on collision set active to False."
@@ -89,6 +148,7 @@ class Game:
                 self.collapse()
                 self.piece = self.next_piece()
             self.draw()
+            self.draw_window()
 
     def collapse(self):
         "Collapse full lines."
@@ -166,45 +226,51 @@ class Game:
             moved = True
         if moved:
             self.draw()
+            self.draw_window()
 
 
 def draw_loop(game):
     """Draw loop.
 
-    Handle console drawing in a separate thread.
-
     """
     game.draw()
+    game.draw_window() #FIXME draws pygame window
     counter = itertools.count(start=1)
     while game.active:
         mark = next(counter)
         game.tick(mark)
         time.sleep(0.1)
 
-
 def input_loop(game):
     """Input loop.
-
-    Handle keyboard input in a separate thread.
 
     """
     while game.active:
         #FIXME
-        keys = pygame.key.get_pressed()
-        # If up, left, down, or right isn't pressed
-        if no_keys_pressed(keys):
-            continue
-        #if key is None:
-            #continue
-        elif key[pygame.K_LEFT]:
-            print('yeet')
-        #elif key == 'quit':
-            #game.active = False
-        else:
-            #assert key in ('left', 'down', 'right', 'up', 'space', 'swap')
-            #FIXME I added left as a test
-            keys = None 
-            game.move(keys)
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event == None:
+                    continue
+                elif event == pygame.K_LEFT:
+                    print('yeet')
+                    game.move('left')
+                elif event == pygame.K_RIGHT:
+                    game.move('right')
+                elif event == pygame.K_DOWN:
+                    game.move('down')
+                elif event == pygame.K_UP:
+                    game.move('up')
+                elif event == pygame.K_SPACE:
+                    game.move('space')
+                #elif key == 'quit':
+                    #game.active = False
+                #else:
+                    #assert key in ('left', 'down', 'right', 'up', 'space', 'swap')
+                    #FIXME I added left as a test
+                    #keys = None 
+                    #game.move(keys)
+
     print('Enter your name for leaderboard (blank to ignore):')
     name = input()
     if name:
@@ -216,32 +282,16 @@ def input_loop(game):
         for pair in scores:
             print('{0:<16} | {1:<16}'.format(*pair))
 
-def no_keys_pressed(keys):
-    """Checks if not valid keys were pressed
-
-    """
-
-    if keys[pygame.K_LEFT] == True:
-        return False
-    elif keys[pygame.K_RIGHT] == True:
-        return False
-    elif keys[pygame.K_DOWN] == True:
-        return False
-    elif keys[pygame.K_UP] == True:
-        return False
-    else:
-        return True
 
 def main():
     "Main entry-point for Tetris."
-    game = Game(10, 10)
-    draw_thread = threading.Thread(target=draw_loop, args=(game,))
-    input_thread = threading.Thread(target=input_loop, args=(game,))
-    draw_thread.start()
-    input_thread.start()
-    draw_thread.join()
-    input_thread.join()
 
+    pygame.init()
+
+    # Define board size
+    game = Game(10, 20)
+    draw_loop(game)
+    input_loop(game)
 
 if __name__ == '__main__':
     main()
